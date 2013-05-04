@@ -2,8 +2,6 @@ package com.digitalsanctum.indeed;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import io.airlift.command.Arguments;
 import io.airlift.command.Cli;
@@ -17,9 +15,7 @@ import retrofit.http.RestAdapter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,35 +116,6 @@ public class IndeedClient {
          return sb.toString();
       }
    }
-
-   private static String formatLn(ImmutableList<String> widths, ImmutableMap<String, Collection<String>> headerValues) {
-      StringBuilder sb = new StringBuilder();
-
-      // build up format pattern
-      StringBuilder widthFmts = new StringBuilder();
-      for (String width : widths) {
-         widthFmts.append(width);
-      }
-      widthFmts.append("%n");
-      String widthFmtStr = widthFmts.toString();
-
-      // headerLabels
-      sb.append(format(widthFmtStr, headerValues.keySet().toArray()));
-
-      // values
-      int idx = 0;
-      for (Map.Entry<String, Collection<String>> entry : headerValues.entrySet()) {
-         String widthPattern = widths.get(idx);
-         for (String value : entry.getValue()) {
-            sb.append(format(widthPattern, value));
-         }
-         idx++;
-      }
-      sb.append("\n");
-
-      return sb.toString();
-   }
-
 
    interface Indeed {
       @GET("/apisearch")
@@ -314,5 +281,4 @@ public class IndeedClient {
          BrowserControl.openUrl(url);
       }
    }
-
 }

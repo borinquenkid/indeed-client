@@ -14,7 +14,8 @@ $ cd indeed-client
 $ gradle clean build
 ```
 
-Add `indeed-client/build/indeed` to your `$PATH`
+1. Add `indeed-client/build/indeed` to your `$PATH`
+2. Create a file `~/.indeed` with your indeed publisher id or use the `-id` arg with each command.
 
 
 ## Examples
