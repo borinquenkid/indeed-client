@@ -1,0 +1,75 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = JavaVersion.VERSION_1_6
+targetCompatibility = JavaVersion.VERSION_1_6
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+// until retrofit is available in maven central, clone and install locally: https://github.com/square/retrofit
+dependencies {
+    compile     'com.squareup.retrofit:retrofit:1.0.0-SNAPSHOT'
+    compile     'io.airlift:airline:0.5'
+}
+
+// create a self-contained jar that is executable
+// the output is both a 'fat' project artifact and
+// a convenience file named "build/indeed"
+task fatJar(dependsOn: classes, type: Jar) {
+    classifier 'cli'
+
+    def mergeDir = "${buildDir}/merge"
+
+    doFirst {
+        // Delay evaluation until the compile configuration is ready
+        from {
+            configurations.compile.collect { zipTree(it) }
+        }
+    }
+
+    doFirst {
+        new File(mergeDir).delete()
+        def mergedFile = new File(mergeDir)
+        new File(mergedFile.parent).mkdirs()
+
+        def depProjects = configurations.runtime.allDependencies.withType(ProjectDependency)*.dependencyProject
+        depProjects.collect { it.sourceSets.main.resources }*.each {
+            mergedFile << it.bytes
+        }
+
+        from(mergeDir)
+    }
+
+    from (sourceSets*.output.classesDir)
+
+
+    // really executable jar
+    // http://skife.org/java/unix/2011/06/20/really_executable_jars.html
+
+    manifest {
+        attributes 'Main-Class': 'com.digitalsanctum.indeed.IndeedClient'
+        attributes("Implementation-Title": "Indeed", "Specification-Version": version, "Implementation-Version": version)
+    }
+
+
+    // for convenience, we make a file in the build dir named denominator with no extension
+    doLast {
+        def srcFile = new File("${buildDir}/libs/${archiveName}")
+        def shortcutFile = new File("${buildDir}/indeed")
+        shortcutFile.delete()
+        shortcutFile << "#!/usr/bin/env sh\n"
+        shortcutFile << 'exec java -jar $0 "$@"' + "\n"
+        shortcutFile << srcFile.bytes
+        shortcutFile.setExecutable(true, true)
+        srcFile.delete()
+        srcFile << shortcutFile.bytes
+        srcFile.setExecutable(true, true)
+    }
+}
+
+artifacts {
+    archives fatJar
+}
