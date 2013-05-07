@@ -1,7 +1,8 @@
 package com.digitalsanctum.indeed;
 
+import com.digitalsanctum.indeed.plugin.PrintPlugin;
+import com.digitalsanctum.indeed.plugin.SearchPlugin;
 import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import io.airlift.command.Arguments;
 import io.airlift.command.Cli;
@@ -9,13 +10,11 @@ import io.airlift.command.Command;
 import io.airlift.command.Help;
 import io.airlift.command.Option;
 import io.airlift.command.OptionType;
-import retrofit.http.GET;
-import retrofit.http.Name;
 import retrofit.http.RestAdapter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,10 +26,10 @@ public class IndeedClient {
    private static final Logger LOG = Logger.getLogger(IndeedClient.class.getSimpleName());
 
    private static final String API_URL = "http://api.indeed.com/ads";
-   private static final String FORMAT = "json";
-   private static final String VERSION = "2";
 
-   protected final String RESULT_FMT = "%-30s%-30s%-30s%-20s%-20s%n";
+
+   private static ServiceLoader<PrintPlugin> printPlugins = ServiceLoader.load(PrintPlugin.class);
+   private static ServiceLoader<SearchPlugin> searchPlugins = ServiceLoader.load(SearchPlugin.class);
 
    private String publisherId;
    private Indeed indeed;
@@ -43,122 +42,26 @@ public class IndeedClient {
       this.indeed = restAdapter.create(Indeed.class);
    }
 
-   class Result {
-      String jobtitle;
-      String company;
-      String city;
-      String state;
-      String country;
-      String formattedLocation;
-      String source;
-      String date;
-      String snippet;
-      String url;
-      String latitude;
-      String longitude;
-      String jobkey;
-      boolean sponsored;
-      boolean expired;
-      String formattedLocationFull;
-      String formattedRelativeTime;
+   private SearchResponse search(SearchRequest request) {
+      SearchResponse response = indeed.search(request.publisherId, request.query, request.location,
+         request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
+      response.sort = request.sort;
 
-      public String print(boolean includeSnippet) {
-         StringBuilder sb = new StringBuilder();
-         String jobTitleTrunc = truncate(jobtitle, 30);
-         String companyTrunc = truncate(company, 30);
-         sb.append(format(RESULT_FMT, jobTitleTrunc, companyTrunc, formattedLocationFull, formattedRelativeTime, jobkey));
-         if (includeSnippet) {
-            sb.append(format("%nDescription:%n%s", snippet));
-         }
-         return sb.toString();
+      // process search plugins
+      for (SearchPlugin searchPlugin : searchPlugins) {
+         searchPlugin.execute(this.indeed, request, response);
       }
-   }
 
-   class GetJobsResponse {
-      List<Result> results;
-
-      public String print() {
-         StringBuilder sb = new StringBuilder();
-         sb.append(format(RESULT_FMT, "job_title", "company", "location", "posted", "job_key"));
-         sb.append(Strings.repeat("-", 130)).append("\n");
-         for (Result result : results) {
-            sb.append(result.print(true));
-         }
-         return sb.toString();
+      // process print plugins
+      for (PrintPlugin printPlugin : printPlugins) {
+         printPlugin.print(response);
       }
-   }
 
-   class SearchResponse extends GetJobsResponse {
-
-      String sort;
-
-      String query;
-      String location;
-      String dupefilter;
-      boolean highlight;
-      String totalResults;
-      String start;
-      String end;
-      String radius;
-      String pageNumber;
-
-      @Override
-      public String print() {
-         StringBuilder sb = new StringBuilder();
-         sb.append(format("%nShowing %s-%s of %s results sorted by %s. [query='%s', location='%s']%n",
-            start, end, totalResults, sort, query, location));
-         sb.append(Strings.repeat("-", 130)).append("\n");
-         sb.append(format(RESULT_FMT, "job_title", "company", "location", "posted", "job_key"));
-         sb.append(Strings.repeat("-", 130)).append("\n");
-         for (Result result : results) {
-            sb.append(result.print(false));
-         }
-         return sb.toString();
-      }
-   }
-
-   interface Indeed {
-      @GET("/apisearch")
-      SearchResponse search(
-         @Name("publisher") String publisher,
-         @Name("v") String v,
-         @Name("format") String format,
-         @Name("q") String q,
-         @Name("l") String l,
-         @Name("sort") String sort,
-         @Name("start") int start,
-         @Name("limit") int limit,
-         @Name("radius") int radius,
-         @Name("fromAge") int fromAge,
-         @Name("st") String st,
-         @Name("jt") String jt
-      );
-
-      @GET("/apigetjobs")
-      GetJobsResponse getJobs(
-         @Name("publisher") String publisher,
-         @Name("v") String v,
-         @Name("format") String format,
-         @Name("jobkeys") String jobKeys
-      );
-   }
-
-   private SearchResponse search(String query, String location, String sort, int start, int limit, int radius, int from, String st, String jt) {
-      SearchResponse response = indeed.search(publisherId, VERSION, FORMAT, query, location, sort, start, limit, radius, from, st, jt);
-      response.sort = sort;
       return response;
    }
 
    private GetJobsResponse getJobs(String jobKeys) {
-      return indeed.getJobs(publisherId, VERSION, FORMAT, jobKeys);
-   }
-
-   private static String truncate(String str, int maxLength) {
-      if (str == null) return "";
-      if (str.length() > maxLength) {
-         return str.substring(0, maxLength - 3) + "...";
-      }
-      return str;
+      return indeed.getJobs(publisherId, jobKeys);
    }
 
    public static void main(String... args) {
@@ -252,9 +155,22 @@ public class IndeedClient {
          if (page <= 1) {
             start = 0;
          } else if (page > 1) {
-            start = (page-1) * limit;
+            start = (page - 1) * limit;
          }
-         System.out.println(indeedClient.search(query, location, sort, start, limit, radius, from, st, jt).print());
+
+         SearchRequest request = new SearchRequest();
+         request.publisherId = this.id;
+         request.query = query;
+         request.location = location;
+         request.sort = sort;
+         request.start = start;
+         request.limit = limit;
+         request.radius = radius;
+         request.from = from;
+         request.st = st;
+         request.jt = jt;
+
+         indeedClient.search(request);
       }
    }
 
