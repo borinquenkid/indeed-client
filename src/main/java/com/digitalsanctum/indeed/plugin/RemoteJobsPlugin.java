@@ -1,6 +1,9 @@
 package com.digitalsanctum.indeed.plugin;
 
+import com.digitalsanctum.indeed.Column;
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.Meta;
+import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
@@ -18,7 +21,7 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
-public class RemoteJobsPlugin implements SearchPlugin {
+public class RemoteJobsPlugin implements Plugin<SearchRequest, SearchResponse> {
 
    private static final Logger LOG = Logger.getLogger(JobFileExporter.class.getSimpleName());
 
@@ -50,6 +53,11 @@ public class RemoteJobsPlugin implements SearchPlugin {
       "working remotely will be limited"
    };
 
+
+   @Override
+   public RequestType[] appliesTo() {
+      return new RequestType[]{RequestType.SEARCH};
+   }
 
    @Override
    public void execute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
@@ -87,8 +95,9 @@ public class RemoteJobsPlugin implements SearchPlugin {
             }
 
             if (score > 0) {
+               Meta meta = new Meta(new Column("remote_score", 10), String.valueOf(score));
+               r.addMeta(meta);
                remoteResults.add(r);
-               System.out.println("score=" + score + " >> " + r.jobtitle + " (" + r.jobkey +")");
             }
 
          } catch (IOException e) {

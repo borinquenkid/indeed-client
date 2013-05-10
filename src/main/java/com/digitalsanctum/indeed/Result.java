@@ -1,10 +1,13 @@
 package com.digitalsanctum.indeed;
 
-import static java.lang.String.format;
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 /** @author Shane Witbeck */
-public class Result {
+public class Result implements MetaAware {
 
+   private Map<String, Meta> metaMap = newHashMap();
 
    public String jobtitle;
    public String company;
@@ -24,31 +27,22 @@ public class Result {
    public String formattedLocationFull;
    public String formattedRelativeTime;
 
-
-   public static String printFormat() {
-      return "%-30s%-30s%-30s%-20s%-20s%n";
+   @Override
+   public void addMeta(Meta meta) {
+      this.metaMap.put(meta.getColumn().getTitle(), meta);
    }
 
-   public static String printHeader() {
-      return String.format(printFormat(), "job_title", "company", "location", "posted", "job_key");
+   @Override
+   public Meta getMeta(String key) {
+      return this.metaMap.get(key);
    }
 
-   public String print(boolean includeSnippet) {
-      StringBuilder sb = new StringBuilder();
-      String jobTitleTrunc = truncate(jobtitle, 30);
-      String companyTrunc = truncate(company, 30);
-      sb.append(String.format(printFormat(), jobTitleTrunc, companyTrunc, formattedLocationFull, formattedRelativeTime, jobkey));
-      if (includeSnippet) {
-         sb.append(format("%nDescription:%n%s", snippet));
-      }
-      return sb.toString();
+   public Map<String, Meta> getMetaMap() {
+      return metaMap;
    }
 
-   protected String truncate(String str, int maxLength) {
-      if (str == null) return "";
-      if (str.length() > maxLength) {
-         return str.substring(0, maxLength - 3) + "...";
-      }
-      return str;
+   public boolean hasMeta() {
+      return metaMap != null && !metaMap.isEmpty();
    }
+
 }

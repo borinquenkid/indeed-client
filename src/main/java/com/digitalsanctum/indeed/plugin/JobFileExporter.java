@@ -1,6 +1,8 @@
 package com.digitalsanctum.indeed.plugin;
 
+import com.digitalsanctum.indeed.GetJobsRequest;
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
@@ -18,11 +20,17 @@ import java.util.logging.Logger;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
-public class JobFileExporter implements SearchPlugin {
+public class JobFileExporter implements Plugin<SearchRequest, SearchResponse> {
 
    private static final Logger LOG = Logger.getLogger(JobFileExporter.class.getSimpleName());
 
    private static final String DATA_DIR = System.getProperty("user.home") + File.separatorChar + ".indeed-data";
+
+
+   @Override
+   public RequestType[] appliesTo() {
+      return new RequestType[]{RequestType.SEARCH};
+   }
 
    @Override
    public void execute(Indeed indeed, SearchRequest req, SearchResponse res) {
@@ -34,6 +42,10 @@ public class JobFileExporter implements SearchPlugin {
 
       for (Result r : res.results) {
          try {
+
+            // play nice with indeed.com
+            Thread.sleep(1000);
+
             Document doc = Jsoup.connect(r.url)
                .method(Connection.Method.GET)
                .get();
@@ -44,6 +56,8 @@ public class JobFileExporter implements SearchPlugin {
          } catch (IOException e) {
             e.printStackTrace();
             LOG.log(Level.SEVERE, format("Error exporting job %s", r.jobkey), e);
+         } catch (InterruptedException e) {
+            e.printStackTrace();
          }
       }
    }

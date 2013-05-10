@@ -1,25 +1,32 @@
 package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
 
 /** @author Shane Witbeck */
-public class MultipageResultPlugin implements SearchPlugin {
+public class MultipageResultPlugin implements Plugin<SearchRequest, SearchResponse> {
+
+
+   @Override
+   public RequestType[] appliesTo() {
+      return new RequestType[]{RequestType.SEARCH};
+   }
+
    @Override
    public void execute(Indeed indeed, SearchRequest req, SearchResponse res) {
 
-
       // handle more than 25 results at one shot
       try {
-         if (Integer.parseInt(res.totalResults) > 25 && req.limit > 25) {
+         if (res.totalResults > 25 && req.limit > 25) {
             int origStart = req.start;
             int total = 25;
 
             while (total < req.limit) {
 
                // be nice to indeed.com
-               Thread.sleep(3000);
+               Thread.sleep(2000);
 
                req.start = total + 1;
 
@@ -31,8 +38,8 @@ public class MultipageResultPlugin implements SearchPlugin {
             }
 
             // reset 'start' and 'end'
-            res.start = String.valueOf(origStart);
-            res.end = String.valueOf(total);
+            res.start = origStart;
+            res.end = total;
          }
       } catch (InterruptedException e) {
          e.printStackTrace();

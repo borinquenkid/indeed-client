@@ -1,7 +1,6 @@
 package com.digitalsanctum.indeed;
 
-import com.digitalsanctum.indeed.plugin.PrintPlugin;
-import com.digitalsanctum.indeed.plugin.SearchPlugin;
+import com.digitalsanctum.indeed.plugin.Plugin;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import io.airlift.command.Arguments;
@@ -25,11 +24,7 @@ public class IndeedClient {
 
    private static final Logger LOG = Logger.getLogger(IndeedClient.class.getSimpleName());
 
-   private static final String API_URL = "http://api.indeed.com/ads";
-
-
-   private static ServiceLoader<PrintPlugin> printPlugins = ServiceLoader.load(PrintPlugin.class);
-   private static ServiceLoader<SearchPlugin> searchPlugins = ServiceLoader.load(SearchPlugin.class);
+   private static ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
 
    private String publisherId;
    private Indeed indeed;
@@ -37,7 +32,7 @@ public class IndeedClient {
    public IndeedClient(String publisherId) {
       this.publisherId = publisherId;
       RestAdapter restAdapter = new RestAdapter.Builder()
-         .setServer(API_URL)
+         .setServer("http://api.indeed.com/ads")
          .build();
       this.indeed = restAdapter.create(Indeed.class);
    }
@@ -47,21 +42,26 @@ public class IndeedClient {
          request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
       response.sort = request.sort;
 
-      // process search plugins
-      for (SearchPlugin searchPlugin : searchPlugins) {
-         searchPlugin.execute(this.indeed, request, response);
-      }
-
-      // process print plugins
-      for (PrintPlugin printPlugin : printPlugins) {
-         printPlugin.print(response);
+      // process plugins
+      for (Plugin plugin : plugins) {
+         if (request.isTypeCompatible(plugin.appliesTo())) {
+            plugin.execute(this.indeed, request, response);
+         }
       }
 
       return response;
    }
 
-   private GetJobsResponse getJobs(String jobKeys) {
-      return indeed.getJobs(publisherId, jobKeys);
+   private GetJobsResponse getJobs(GetJobsRequest request) {
+      GetJobsResponse response = indeed.getJobs(this.publisherId, request.jobKeys);
+
+      // process plugins
+      for (Plugin plugin : plugins) {
+         if (request.isTypeCompatible(plugin.appliesTo())) {
+            plugin.execute(this.indeed, request, response);
+         }
+      }
+      return response;
    }
 
    public static void main(String... args) {
@@ -181,7 +181,7 @@ public class IndeedClient {
 
       @Override
       protected void doRun(IndeedClient indeedClient) {
-         System.out.println(indeedClient.getJobs(jobKeys).print());
+         indeedClient.getJobs(new GetJobsRequest(this.jobKeys));
       }
    }
 
@@ -192,7 +192,7 @@ public class IndeedClient {
 
       @Override
       protected void doRun(IndeedClient indeedClient) {
-         String url = indeedClient.getJobs(jobKey).results.get(0).url;
+         String url = indeedClient.getJobs(new GetJobsRequest(jobKey)).results.get(0).url;
          System.out.println(format("opening job %s (url=%s) in browser...", jobKey, url));
          BrowserControl.openUrl(url);
       }

@@ -1,3 +1,4 @@
 com.digitalsanctum.indeed.plugin.MultipageResultPlugin
 #com.digitalsanctum.indeed.plugin.RemoteJobsPlugin
+com.digitalsanctum.indeed.plugin.ConsolePrintPlugin
 #com.digitalsanctum.indeed.plugin.JobFileExporter
