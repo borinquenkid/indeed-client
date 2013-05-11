@@ -7,6 +7,7 @@ import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -14,6 +15,7 @@ import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -55,8 +57,8 @@ public class RemoteJobsPlugin implements Plugin<SearchRequest, SearchResponse> {
 
 
    @Override
-   public RequestType[] appliesTo() {
-      return new RequestType[]{RequestType.SEARCH};
+   public Set<RequestType> appliesTo() {
+      return ImmutableSet.of(RequestType.SEARCH);
    }
 
    @Override

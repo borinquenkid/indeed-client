@@ -4,14 +4,17 @@ import com.digitalsanctum.indeed.Indeed;
 import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
 
 /** @author Shane Witbeck */
 public class MultipageResultPlugin implements Plugin<SearchRequest, SearchResponse> {
 
 
    @Override
-   public RequestType[] appliesTo() {
-      return new RequestType[]{RequestType.SEARCH};
+   public Set<RequestType> appliesTo() {
+      return ImmutableSet.of(RequestType.SEARCH);
    }
 
    @Override

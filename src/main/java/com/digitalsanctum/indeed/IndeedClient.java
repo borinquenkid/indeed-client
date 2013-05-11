@@ -1,8 +1,7 @@
 package com.digitalsanctum.indeed;
 
 import com.digitalsanctum.indeed.plugin.Plugin;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import com.digitalsanctum.indeed.util.FileUtils;
 import io.airlift.command.Arguments;
 import io.airlift.command.Cli;
 import io.airlift.command.Command;
@@ -12,7 +11,7 @@ import io.airlift.command.OptionType;
 import retrofit.http.RestAdapter;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,14 +90,10 @@ public class IndeedClient {
       public void run() {
 
          if (id == null) {
-            try {
-               File indeedConf = new File(System.getProperty("user.home") + File.separatorChar + ".indeed");
-               String fileContents = Files.toString(indeedConf, Charsets.UTF_8);
-               if (fileContents != null) {
-                  id = fileContents.trim();
-               }
-            } catch (IOException e) {
-               LOG.log(Level.SEVERE, "Error reading ~/.indeed file", e);
+            String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed.properties";
+            Properties props = FileUtils.loadProperties(propsPath);
+            if (props != null && props.containsKey("publisher.id")) {
+               id = props.getProperty("publisher.id");
             }
          }
 

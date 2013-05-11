@@ -6,6 +6,7 @@ import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -14,6 +15,7 @@ import org.jsoup.nodes.Document;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,8 +30,8 @@ public class JobFileExporter implements Plugin<SearchRequest, SearchResponse> {
 
 
    @Override
-   public RequestType[] appliesTo() {
-      return new RequestType[]{RequestType.SEARCH};
+   public Set<RequestType> appliesTo() {
+      return ImmutableSet.of(RequestType.SEARCH);
    }
 
    @Override

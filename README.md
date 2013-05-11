@@ -15,7 +15,7 @@ $ gradle clean build
 ```
 
 1. Add `indeed-client/build/indeed` to your `$PATH`
-2. Create a file `~/.indeed` with your indeed publisher id or use the `-id` arg with each command.
+2. Create a file `~/.indeed.properties` with your indeed publisher id or use the `-id` arg with each command.
 
 
 ## Examples

@@ -4,13 +4,18 @@ import com.digitalsanctum.indeed.BaseRequest;
 import com.digitalsanctum.indeed.Indeed;
 import com.digitalsanctum.indeed.PrintAware;
 import com.digitalsanctum.indeed.RequestType;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+
+import static com.digitalsanctum.indeed.RequestType.*;
 
 /** @author Shane Witbeck */
 public class ConsolePrintPlugin implements Plugin<BaseRequest, Object> {
 
    @Override
-   public RequestType[] appliesTo() {
-      return new RequestType[]{RequestType.DETAIL, RequestType.SEARCH};
+   public Set<RequestType> appliesTo() {
+      return ImmutableSet.of(DETAIL, SEARCH);
    }
 
    @Override
