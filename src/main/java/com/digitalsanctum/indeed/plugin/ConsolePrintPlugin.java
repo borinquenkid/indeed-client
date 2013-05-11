@@ -4,14 +4,18 @@ import com.digitalsanctum.indeed.BaseRequest;
 import com.digitalsanctum.indeed.Indeed;
 import com.digitalsanctum.indeed.PrintAware;
 import com.digitalsanctum.indeed.RequestType;
+import com.digitalsanctum.indeed.Response;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
 
-import static com.digitalsanctum.indeed.RequestType.*;
+import static com.digitalsanctum.indeed.RequestType.DETAIL;
+import static com.digitalsanctum.indeed.RequestType.SEARCH;
 
 /** @author Shane Witbeck */
-public class ConsolePrintPlugin implements Plugin<BaseRequest, Object> {
+public class ConsolePrintPlugin implements Plugin<BaseRequest, Response> {
+
+   private boolean executed;
 
    @Override
    public Set<RequestType> appliesTo() {
@@ -19,9 +23,15 @@ public class ConsolePrintPlugin implements Plugin<BaseRequest, Object> {
    }
 
    @Override
-   public void execute(Indeed indeed, BaseRequest request, Object response) {
+   public void execute(Indeed indeed, BaseRequest request, Response response) {
       if (response instanceof PrintAware) {
          System.out.println(((PrintAware) response).print());
       }
+      this.executed = true;
+   }
+
+   @Override
+   public boolean isExecuted() {
+      return this.executed;
    }
 }

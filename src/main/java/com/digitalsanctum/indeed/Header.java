@@ -53,7 +53,9 @@ public class Header {
          Map<String, Meta> metaMap = results.get(0).getMetaMap();
          if (metaMap != null && !metaMap.isEmpty()) {
             for (String metaKey : metaMap.keySet()) {
-               addColumn(metaKey, metaMap.get(metaKey).getColumn().getWidth());
+               if (metaMap.get(metaKey).isDisplay()) {
+                  addColumn(metaKey, metaMap.get(metaKey).getColumn().getWidth());
+               }
             }
          }
       }

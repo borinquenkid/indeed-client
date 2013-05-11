@@ -23,7 +23,7 @@ public class IndeedClient {
 
    private static final Logger LOG = Logger.getLogger(IndeedClient.class.getSimpleName());
 
-   private static ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
+   private static final ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
 
    private String publisherId;
    private Indeed indeed;

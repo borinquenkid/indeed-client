@@ -1,7 +1,7 @@
 package com.digitalsanctum.indeed.plugin;
 
-import com.digitalsanctum.indeed.GetJobsRequest;
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.Request;
 import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
@@ -22,12 +22,13 @@ import java.util.logging.Logger;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
-public class JobFileExporter implements Plugin<SearchRequest, SearchResponse> {
+public class JobFileExporter extends SearchPlugin {
 
    private static final Logger LOG = Logger.getLogger(JobFileExporter.class.getSimpleName());
 
    private static final String DATA_DIR = System.getProperty("user.home") + File.separatorChar + ".indeed-data";
 
+   private boolean executed;
 
    @Override
    public Set<RequestType> appliesTo() {
@@ -39,6 +40,7 @@ public class JobFileExporter implements Plugin<SearchRequest, SearchResponse> {
 
       boolean createDataDirSuccess = createDataDir();
       if (!createDataDirSuccess) {
+         this.executed = true;
          return;
       }
 
@@ -62,6 +64,12 @@ public class JobFileExporter implements Plugin<SearchRequest, SearchResponse> {
             e.printStackTrace();
          }
       }
+      this.executed = true;
+   }
+
+   @Override
+   public boolean isExecuted() {
+      return this.executed;
    }
 
 

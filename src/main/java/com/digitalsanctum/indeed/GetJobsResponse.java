@@ -10,7 +10,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
-public class GetJobsResponse implements PrintAware {
+public class GetJobsResponse implements PrintAware, Response {
 
    public List<Result> results;
 
@@ -43,7 +43,9 @@ public class GetJobsResponse implements PrintAware {
       if (result.hasMeta()) {
          Map<String, Meta> metaMap = result.getMetaMap();
          for (String metaKey : metaMap.keySet()) {
-            columnValues.add(metaMap.get(metaKey).getValue());
+            if (metaMap.get(metaKey).isDisplay()) {
+               columnValues.add(metaMap.get(metaKey).getValue());
+            }
          }
       }
 

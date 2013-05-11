@@ -3,29 +3,17 @@ package com.digitalsanctum.indeed.plugin;
 import com.digitalsanctum.indeed.Column;
 import com.digitalsanctum.indeed.Indeed;
 import com.digitalsanctum.indeed.Meta;
-import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
-
 /** @author Shane Witbeck */
-public class RemoteJobsPlugin implements Plugin<SearchRequest, SearchResponse> {
-
-   private static final Logger LOG = Logger.getLogger(JobFileExporter.class.getSimpleName());
+public class RemoteJobsPlugin extends SearchChainedPlugin {
 
    private static final String[] POSITIVE = {
       "remote",
@@ -55,59 +43,50 @@ public class RemoteJobsPlugin implements Plugin<SearchRequest, SearchResponse> {
       "working remotely will be limited"
    };
 
-
    @Override
-   public Set<RequestType> appliesTo() {
-      return ImmutableSet.of(RequestType.SEARCH);
-   }
-
-   @Override
-   public void execute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
+   public void doExecute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
 
       List<Result> remoteResults = Lists.newArrayList();
 
       for (Result r : searchResponse.results) {
-         try {
-            Document doc = Jsoup.connect(r.url)
-               .method(Connection.Method.GET)
-               .get();
-            String text = doc.text();
 
-            int score = 0;
-            for (String positivePattern : POSITIVE) {
+         String text = r.getMeta("job_text").getValue();
 
-               boolean positivePresent = Pattern
-                  .compile(Pattern.quote(positivePattern), Pattern.CASE_INSENSITIVE)
-                  .matcher(text)
-                  .find();
+         int score = 0;
+         for (String positivePattern : POSITIVE) {
 
-               if (positivePresent) {
-                  score += 1;
-               }
+            boolean positivePresent = Pattern
+               .compile(Pattern.quote(positivePattern), Pattern.CASE_INSENSITIVE)
+               .matcher(text)
+               .find();
+
+            if (positivePresent) {
+               score += 1;
             }
-
-            for (String negativePattern : NEGATIVE) {
-               boolean negativePresent = Pattern
-                  .compile(Pattern.quote(negativePattern), Pattern.CASE_INSENSITIVE)
-                  .matcher(text)
-                  .find();
-               if (negativePresent) {
-                  score -= 1;
-               }
-            }
-
-            if (score > 0) {
-               Meta meta = new Meta(new Column("remote_score", 10), String.valueOf(score));
-               r.addMeta(meta);
-               remoteResults.add(r);
-            }
-
-         } catch (IOException e) {
-            LOG.log(Level.SEVERE, format("Error processing job %s", r.jobkey), e);
          }
-      }
 
-      searchResponse.results = remoteResults;
+         for (String negativePattern : NEGATIVE) {
+            boolean negativePresent = Pattern
+               .compile(Pattern.quote(negativePattern), Pattern.CASE_INSENSITIVE)
+               .matcher(text)
+               .find();
+            if (negativePresent) {
+               score -= 1;
+            }
+         }
+
+         if (score > 0) {
+            Meta meta = new Meta(new Column("remote_score", 10), String.valueOf(score), true);
+            r.addMeta(meta);
+            remoteResults.add(r);
+         }
+
+         searchResponse.results = remoteResults;
+      }
    }
 
+   @Override
+   public List<Plugin> dependsOn() {
+      return ImmutableList.of((Plugin) new ExtractTextPlugin());
+   }
 }

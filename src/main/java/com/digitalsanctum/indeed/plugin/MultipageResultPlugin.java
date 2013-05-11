@@ -1,21 +1,15 @@
 package com.digitalsanctum.indeed.plugin;
 
+import com.digitalsanctum.indeed.BaseRequest;
+import com.digitalsanctum.indeed.GetJobsResponse;
 import com.digitalsanctum.indeed.Indeed;
-import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
 
 /** @author Shane Witbeck */
-public class MultipageResultPlugin implements Plugin<SearchRequest, SearchResponse> {
+public class MultipageResultPlugin extends SearchPlugin {
 
-
-   @Override
-   public Set<RequestType> appliesTo() {
-      return ImmutableSet.of(RequestType.SEARCH);
-   }
+   private boolean executed;
 
    @Override
    public void execute(Indeed indeed, SearchRequest req, SearchResponse res) {
@@ -46,7 +40,14 @@ public class MultipageResultPlugin implements Plugin<SearchRequest, SearchRespon
          }
       } catch (InterruptedException e) {
          e.printStackTrace();
+      } finally {
+         this.executed = true;
       }
 
+   }
+
+   @Override
+   public boolean isExecuted() {
+      return this.executed;
    }
 }
