@@ -13,7 +13,7 @@ public class Column {
 
    public Column(String title, int width) {
       this.title = title;
-      this.width = (title.length() > width) ? title.length() : width;
+      this.width = (title.length() > width) ? title.length() + 1 : width;
    }
 
    public String getTitle() {

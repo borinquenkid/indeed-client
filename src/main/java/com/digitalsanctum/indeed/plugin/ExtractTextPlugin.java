@@ -24,8 +24,6 @@ public class ExtractTextPlugin implements Plugin<SearchRequest, SearchResponse> 
 
    private static final Logger LOG = Logger.getLogger(ExtractTextPlugin.class.getSimpleName());
 
-   private boolean executed;
-
    @Override
    public Set<RequestType> appliesTo() {
       return ImmutableSet.of(RequestType.SEARCH);
@@ -37,7 +35,7 @@ public class ExtractTextPlugin implements Plugin<SearchRequest, SearchResponse> 
 
          try {
             // be nice to indeed.com
-            Thread.sleep(2000);
+            Thread.sleep(request.getRequestSleepInterval());
          } catch (InterruptedException e) {
             e.printStackTrace();
          }
@@ -49,17 +47,9 @@ public class ExtractTextPlugin implements Plugin<SearchRequest, SearchResponse> 
             String text = doc.text();
             r.addMeta(new Meta(new Column("job_text", -1), text, false));
 
-            System.out.println("");
-
          } catch (IOException e) {
             LOG.log(Level.SEVERE, format("Error processing job %s", r.jobkey), e);
          }
       }
-      this.executed = true;
-   }
-
-   @Override
-   public boolean isExecuted() {
-      return this.executed;
    }
 }

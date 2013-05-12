@@ -15,8 +15,6 @@ import static com.digitalsanctum.indeed.RequestType.SEARCH;
 /** @author Shane Witbeck */
 public class ConsolePrintPlugin implements Plugin<BaseRequest, Response> {
 
-   private boolean executed;
-
    @Override
    public Set<RequestType> appliesTo() {
       return ImmutableSet.of(DETAIL, SEARCH);
@@ -27,11 +25,5 @@ public class ConsolePrintPlugin implements Plugin<BaseRequest, Response> {
       if (response instanceof PrintAware) {
          System.out.println(((PrintAware) response).print());
       }
-      this.executed = true;
-   }
-
-   @Override
-   public boolean isExecuted() {
-      return this.executed;
    }
 }

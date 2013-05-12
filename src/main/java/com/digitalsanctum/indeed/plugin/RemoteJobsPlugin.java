@@ -7,13 +7,12 @@ import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
 /** @author Shane Witbeck */
-public class RemoteJobsPlugin extends SearchChainedPlugin {
+public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
 
    private static final String[] POSITIVE = {
       "remote",
@@ -44,9 +43,7 @@ public class RemoteJobsPlugin extends SearchChainedPlugin {
    };
 
    @Override
-   public void doExecute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
-
-      List<Result> remoteResults = Lists.newArrayList();
+   public void execute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
 
       for (Result r : searchResponse.results) {
 
@@ -75,13 +72,8 @@ public class RemoteJobsPlugin extends SearchChainedPlugin {
             }
          }
 
-         if (score > 0) {
-            Meta meta = new Meta(new Column("remote_score", 10), String.valueOf(score), true);
-            r.addMeta(meta);
-            remoteResults.add(r);
-         }
-
-         searchResponse.results = remoteResults;
+         Meta meta = new Meta(new Column("remote_score", 5), String.valueOf(score), true);
+         r.addMeta(meta);
       }
    }
 

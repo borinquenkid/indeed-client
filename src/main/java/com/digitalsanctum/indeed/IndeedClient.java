@@ -1,5 +1,6 @@
 package com.digitalsanctum.indeed;
 
+import com.digitalsanctum.indeed.plugin.ChainedPlugin;
 import com.digitalsanctum.indeed.plugin.Plugin;
 import com.digitalsanctum.indeed.util.FileUtils;
 import io.airlift.command.Arguments;
@@ -11,11 +12,14 @@ import io.airlift.command.OptionType;
 import retrofit.http.RestAdapter;
 
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
@@ -41,10 +45,33 @@ public class IndeedClient {
          request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
       response.sort = request.sort;
 
+
+      // todo move plugin dependency login here
+
+      Set<String> executedPlugins = newHashSet();
+
       // process plugins
       for (Plugin plugin : plugins) {
          if (request.isTypeCompatible(plugin.appliesTo())) {
+
+            long start = System.currentTimeMillis();
+
+            // execute dependency plugins
+            if (plugin instanceof ChainedPlugin) {
+               List<Plugin> dependsOn = ((ChainedPlugin) plugin).dependsOn();
+               if (!dependsOn.isEmpty()) {
+                  for (Plugin p : dependsOn) {
+                     String pluginName = p.getClass().getSimpleName();
+                     if (!executedPlugins.contains(pluginName)) {
+                        p.execute(indeed, request, response);
+                        executedPlugins.add(pluginName);
+                     }
+                  }
+               }
+            }
+
             plugin.execute(this.indeed, request, response);
+            LOG.info(format("executed %s plugin in %d ms", plugin.getClass().getSimpleName(), System.currentTimeMillis() - start));
          }
       }
 

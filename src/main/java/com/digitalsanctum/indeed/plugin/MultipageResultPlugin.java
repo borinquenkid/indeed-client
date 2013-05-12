@@ -9,8 +9,6 @@ import com.digitalsanctum.indeed.SearchResponse;
 /** @author Shane Witbeck */
 public class MultipageResultPlugin extends SearchPlugin {
 
-   private boolean executed;
-
    @Override
    public void execute(Indeed indeed, SearchRequest req, SearchResponse res) {
 
@@ -23,7 +21,7 @@ public class MultipageResultPlugin extends SearchPlugin {
             while (total < req.limit) {
 
                // be nice to indeed.com
-               Thread.sleep(2000);
+               Thread.sleep(req.getRequestSleepInterval());
 
                req.start = total + 1;
 
@@ -40,14 +38,6 @@ public class MultipageResultPlugin extends SearchPlugin {
          }
       } catch (InterruptedException e) {
          e.printStackTrace();
-      } finally {
-         this.executed = true;
       }
-
-   }
-
-   @Override
-   public boolean isExecuted() {
-      return this.executed;
    }
 }

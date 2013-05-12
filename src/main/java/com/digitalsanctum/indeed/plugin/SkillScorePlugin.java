@@ -14,10 +14,10 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 /** @author Shane Witbeck */
-public class SkillScorePlugin extends SearchChainedPlugin {
+public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
 
    @Override
-   public void doExecute(Indeed indeed, SearchRequest request, SearchResponse response) {
+   public void execute(Indeed indeed, SearchRequest request, SearchResponse response) {
 
       Properties props = request.getProperties();
 

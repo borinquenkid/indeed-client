@@ -1,7 +1,6 @@
 package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Indeed;
-import com.digitalsanctum.indeed.Request;
 import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
@@ -28,8 +27,6 @@ public class JobFileExporter extends SearchPlugin {
 
    private static final String DATA_DIR = System.getProperty("user.home") + File.separatorChar + ".indeed-data";
 
-   private boolean executed;
-
    @Override
    public Set<RequestType> appliesTo() {
       return ImmutableSet.of(RequestType.SEARCH);
@@ -40,7 +37,6 @@ public class JobFileExporter extends SearchPlugin {
 
       boolean createDataDirSuccess = createDataDir();
       if (!createDataDirSuccess) {
-         this.executed = true;
          return;
       }
 
@@ -48,7 +44,7 @@ public class JobFileExporter extends SearchPlugin {
          try {
 
             // play nice with indeed.com
-            Thread.sleep(1000);
+            Thread.sleep(req.getRequestSleepInterval());
 
             Document doc = Jsoup.connect(r.url)
                .method(Connection.Method.GET)
@@ -64,14 +60,7 @@ public class JobFileExporter extends SearchPlugin {
             e.printStackTrace();
          }
       }
-      this.executed = true;
    }
-
-   @Override
-   public boolean isExecuted() {
-      return this.executed;
-   }
-
 
    private boolean createDataDir() {
       File dataDir = new File(DATA_DIR);

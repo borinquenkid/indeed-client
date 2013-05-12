@@ -16,6 +16,4 @@ public interface Plugin<R extends Request, T extends Response> {
    public Set<RequestType> appliesTo();
 
    public void execute(Indeed indeed, R request, T response);
-
-   public boolean isExecuted();
 }
