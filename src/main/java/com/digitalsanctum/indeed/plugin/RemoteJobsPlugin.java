@@ -6,75 +6,59 @@ import com.digitalsanctum.indeed.Meta;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
+import com.digitalsanctum.indeed.util.FileUtils;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
 /** @author Shane Witbeck */
 public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
 
-   private static final String[] POSITIVE = {
-      "remote",
-      "telecommute",
-      "allows telecommute",
-      "this is a remote assignment",
-      "you may be located anywhere",
-      "candidates can be located anywhere",
-      "remote opportunity",
-      "location: remote",
-      "allows remote",
-      "remote position",
-      "work from home"
-   };
-
-   private static final String[] NEGATIVE = {
-      "remote work authorized : no",
-      "is this a remote or multiple location position? no",
-      "remote sensing",
-      "remote deposit",
-      "remote access",
-      "geographically remote",
-      "remote pathways",
-      "remote procedure",
-      "remote monitoring",
-      "experience leading remote",
-      "working remotely will be limited"
-   };
-
    @Override
    public void execute(Indeed indeed, SearchRequest searchRequest, SearchResponse searchResponse) {
 
+      Iterable<String> positive = getPatterns(searchRequest, "plugin.remotejobs.positive.file");
+      Iterable<String> negative = getPatterns(searchRequest, "plugin.remotejobs.negative.file");
+
       for (Result r : searchResponse.results) {
 
+         // got from ExtractTextPlugin
          String text = r.getMeta("job_text").getValue();
 
          int score = 0;
-         for (String positivePattern : POSITIVE) {
-
-            boolean positivePresent = Pattern
-               .compile(Pattern.quote(positivePattern), Pattern.CASE_INSENSITIVE)
-               .matcher(text)
-               .find();
-
-            if (positivePresent) {
-               score += 1;
-            }
-         }
-
-         for (String negativePattern : NEGATIVE) {
-            boolean negativePresent = Pattern
-               .compile(Pattern.quote(negativePattern), Pattern.CASE_INSENSITIVE)
-               .matcher(text)
-               .find();
-            if (negativePresent) {
-               score -= 1;
-            }
-         }
+         score = testPatterns(positive, text, score, true);
+         score = testPatterns(negative, text, score, false);
 
          Meta meta = new Meta(new Column("remote_score", 5), String.valueOf(score), true);
          r.addMeta(meta);
       }
+   }
+
+   private Iterable<String> getPatterns(SearchRequest searchRequest, String patternFileProperty) {
+      String content = null;
+      try {
+         content = FileUtils.getFileContentsFromPath(searchRequest.getDataDir() + File.separatorChar + searchRequest.getProperty(patternFileProperty));
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return Splitter.on("\n").omitEmptyStrings().trimResults().split(content);
+   }
+
+   private int testPatterns(Iterable<String> patterns, String text, int score, boolean add) {
+      for (String pattern : patterns) {
+         boolean present = Pattern
+            .compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE)
+            .matcher(text)
+            .find();
+         if (present) {
+            score = (add ? (score + 1) : (score - 1));
+         }
+      }
+      return score;
    }
 
    @Override

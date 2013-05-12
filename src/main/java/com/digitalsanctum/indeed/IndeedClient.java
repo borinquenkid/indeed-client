@@ -117,7 +117,7 @@ public class IndeedClient {
       public void run() {
 
          if (id == null) {
-            String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed.properties";
+            String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed" + File.separatorChar + "indeed.properties";
             Properties props = FileUtils.loadProperties(propsPath);
             if (props != null && props.containsKey("publisher.id")) {
                id = props.getProperty("publisher.id");

@@ -12,7 +12,7 @@ public abstract class BaseRequest implements Request {
    private static Properties properties;
 
    static {
-      String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed.properties";
+      String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed" + File.separatorChar + "indeed.properties";
       properties = FileUtils.loadProperties(propsPath);
    }
 
@@ -29,6 +29,10 @@ public abstract class BaseRequest implements Request {
 
    public String getProperty(String key) {
       return properties.getProperty(key);
+   }
+
+   public String getDataDir() {
+      return getProperty("data.dir");
    }
 
    public int getRequestSleepInterval() {
