@@ -1,11 +1,9 @@
 package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Indeed;
-import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -14,7 +12,6 @@ import org.jsoup.nodes.Document;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,8 +25,8 @@ public class JobFileExporter extends SearchPlugin {
    private static final String DATA_DIR = System.getProperty("user.home") + File.separatorChar + ".indeed-data";
 
    @Override
-   public Set<RequestType> appliesTo() {
-      return ImmutableSet.of(RequestType.SEARCH);
+   public Class[] appliesTo() {
+      return new Class[]{SearchRequest.class};
    }
 
    @Override

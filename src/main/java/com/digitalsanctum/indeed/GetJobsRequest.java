@@ -9,8 +9,4 @@ public class GetJobsRequest extends BaseRequest {
       this.jobKeys = jobKeys;
    }
 
-   @Override
-   public RequestType type() {
-      return RequestType.DETAIL;
-   }
 }

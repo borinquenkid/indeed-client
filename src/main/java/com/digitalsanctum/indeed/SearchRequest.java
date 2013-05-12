@@ -15,9 +15,4 @@ public class SearchRequest extends BaseRequest {
    public String st;
    public String jt;
 
-
-   @Override
-   public RequestType type() {
-      return RequestType.SEARCH;
-   }
 }

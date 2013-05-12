@@ -1,23 +1,18 @@
 package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.BaseRequest;
+import com.digitalsanctum.indeed.GetJobsRequest;
 import com.digitalsanctum.indeed.Indeed;
 import com.digitalsanctum.indeed.PrintAware;
-import com.digitalsanctum.indeed.RequestType;
 import com.digitalsanctum.indeed.Response;
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
-
-import static com.digitalsanctum.indeed.RequestType.DETAIL;
-import static com.digitalsanctum.indeed.RequestType.SEARCH;
+import com.digitalsanctum.indeed.SearchRequest;
 
 /** @author Shane Witbeck */
-public class ConsolePrintPlugin implements Plugin<BaseRequest, Response> {
+public class ConsolePrintPlugin implements Plugin<BaseRequest,Response> {
 
    @Override
-   public Set<RequestType> appliesTo() {
-      return ImmutableSet.of(DETAIL, SEARCH);
+   public Class[] appliesTo() {
+      return new Class[]{GetJobsRequest.class, SearchRequest.class};
    }
 
    @Override

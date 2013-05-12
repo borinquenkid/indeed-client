@@ -9,8 +9,6 @@ import java.util.Set;
 /** @author Shane Witbeck */
 public abstract class BaseRequest implements Request {
 
-   public abstract RequestType type();
-
    private static Properties properties;
 
    static {
@@ -18,9 +16,9 @@ public abstract class BaseRequest implements Request {
       properties = FileUtils.loadProperties(propsPath);
    }
 
-   public boolean isTypeCompatible(Set<RequestType> types) {
-      for (RequestType type : types) {
-         if (type == type()) return true;
+   public boolean isTypeCompatible(Class[] clazzes) {
+      for (Class clazz : clazzes) {
+         if (clazz == getClass()) return true;
       }
       return false;
    }
