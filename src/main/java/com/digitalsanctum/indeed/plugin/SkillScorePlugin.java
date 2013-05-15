@@ -2,6 +2,7 @@ package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Column;
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.Align;
 import com.digitalsanctum.indeed.Meta;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
@@ -21,17 +22,8 @@ public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
 
       Properties props = request.getProperties();
 
-      String includeProp = props.getProperty("plugin.skillscore.include");
-      Iterable<String> includes = null;
-      if (includeProp != null) {
-         includes = Splitter.on(',').trimResults().split(includeProp);
-      }
-
-      String excludeProp = props.getProperty("plugin.skillscore.exclude");
-      Iterable<String> excludes = null;
-      if (excludeProp != null) {
-         excludes = Splitter.on(',').trimResults().split(excludeProp);
-      }
+      Iterable<String> includes = getSkills(props, "plugin.skillscore.include");
+      Iterable<String> excludes = getSkills(props, "plugin.skillscore.exclude");
 
       for (Result r : response.results) {
 
@@ -65,9 +57,18 @@ public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
             }
          }
 
-         Meta meta = new Meta(new Column("skill_score", 10), String.valueOf(score), true);
+         Meta meta = new Meta(new Column("skill_score", 15, Align.RIGHT), String.valueOf(score), true);
          r.addMeta(meta);
       }
+   }
+
+   private Iterable<String> getSkills(Properties props, String key) {
+      String excludeProp = props.getProperty(key);
+      Iterable<String> excludes = null;
+      if (excludeProp != null) {
+         excludes = Splitter.on(',').trimResults().split(excludeProp);
+      }
+      return excludes;
    }
 
    @Override

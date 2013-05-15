@@ -45,9 +45,6 @@ public class IndeedClient {
          request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
       response.sort = request.sort;
 
-
-      // todo move plugin dependency login here
-
       Set<String> executedPlugins = newHashSet();
 
       // process plugins
@@ -61,7 +58,7 @@ public class IndeedClient {
                List<Plugin> dependsOn = ((ChainedPlugin) plugin).dependsOn();
                if (!dependsOn.isEmpty()) {
                   for (Plugin p : dependsOn) {
-                     String pluginName = p.getClass().getSimpleName();
+                     String pluginName = p.getClass().getName();
                      if (!executedPlugins.contains(pluginName)) {
                         p.execute(indeed, request, response);
                         executedPlugins.add(pluginName);

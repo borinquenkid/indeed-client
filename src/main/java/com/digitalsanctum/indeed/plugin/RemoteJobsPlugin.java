@@ -2,6 +2,7 @@ package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Column;
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.Align;
 import com.digitalsanctum.indeed.Meta;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
@@ -33,7 +34,7 @@ public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
          score = testPatterns(positive, text, score, true);
          score = testPatterns(negative, text, score, false);
 
-         Meta meta = new Meta(new Column("remote_score", 5), String.valueOf(score), true);
+         Meta meta = new Meta(new Column("remote_score", 15, Align.RIGHT), String.valueOf(score), true);
          r.addMeta(meta);
       }
    }

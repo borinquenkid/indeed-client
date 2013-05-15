@@ -43,6 +43,11 @@ public class Header {
       widthMap.put(title, width);
    }
 
+   public void addColumn(String title, int width, Align align) {
+      columns.add(new Column(title, width, align));
+      widthMap.put(title, width);
+   }
+
    public String horizontalDiv() {
      return Strings.repeat("-", getTotalWidth()) + "\n";
    }
@@ -54,7 +59,8 @@ public class Header {
          if (metaMap != null && !metaMap.isEmpty()) {
             for (String metaKey : metaMap.keySet()) {
                if (metaMap.get(metaKey).isDisplay()) {
-                  addColumn(metaKey, metaMap.get(metaKey).getColumn().getWidth());
+                  Column c = metaMap.get(metaKey).getColumn();
+                  addColumn(metaKey, c.getWidth(), c.justify());
                }
             }
          }
