@@ -1,5 +1,7 @@
 com.digitalsanctum.indeed.plugin.MultipageResultPlugin
 com.digitalsanctum.indeed.plugin.RemoteJobsPlugin
 com.digitalsanctum.indeed.plugin.SkillScorePlugin
+com.digitalsanctum.indeed.plugin.ResultFilterPlugin
 com.digitalsanctum.indeed.plugin.ConsolePrintPlugin
-#com.digitalsanctum.indeed.plugin.JobFileExporter
+#com.digitalsanctum.indeed.plugin.JobDetailExportPlugin
+com.digitalsanctum.indeed.plugin.JobIndexExportPlugin

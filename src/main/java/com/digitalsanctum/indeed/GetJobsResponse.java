@@ -14,54 +14,36 @@ public class GetJobsResponse implements PrintAware, Response {
 
    public List<Result> results;
 
-   protected Header header = new Header();
-
    @Override
    public String print() {
-      StringBuilder sb = new StringBuilder();
-      sb.append(header.print(results));
-      sb.append(header.horizontalDiv());
-      for (Result result : results) {
-         sb.append(printResult(result, true));
-      }
-      return sb.toString();
+      return getTable().print();
    }
 
-   public String printResult(Result result, boolean includeSnippet) {
-      StringBuilder sb = new StringBuilder();
+   protected Table getTable() {
+      Table table = new Table();
+      for (Result result : results) {
+         Row row = getRowFromResult(result);
+         table.addRow(row);
+      }
+      return table;
+   }
 
-      String jobTitleTrunc = truncate(result.jobtitle, header.getColumnWidth("job_title"));
-      String companyTrunc = truncate(result.company, header.getColumnWidth("company"));
-
-      List<String> columnValues = newArrayList();
-      columnValues.add(jobTitleTrunc);
-      columnValues.add(companyTrunc);
-      columnValues.add(result.formattedLocationFull);
-      columnValues.add(result.formattedRelativeTime);
-      columnValues.add(result.jobkey);
+   private Row getRowFromResult(Result result) {
+      Row row = new Row();
+      row
+         .addCell(new Column().title("job_title").width(50), result.jobtitle)
+         .addCell(new Column().title("company"), result.company)
+         .addCell(new Column().title("location"), result.formattedLocationFull)
+         .addCell(new Column().title("posted"), result.formattedRelativeTime)
+         .addCell(new Column().title("job_key").width(20), result.jobkey);
 
       if (result.hasMeta()) {
-         Map<String, Meta> metaMap = result.getMetaMap();
-         for (String metaKey : metaMap.keySet()) {
-            if (metaMap.get(metaKey).isDisplay()) {
-               columnValues.add(metaMap.get(metaKey).getValue());
+         for(Map.Entry<String, Meta> entry : result.getMetaMap().entrySet()) {
+            if (entry.getValue().isDisplay()) {
+               row.addCell(entry.getValue().getColumn(), entry.getValue().getValue());
             }
          }
       }
-
-      sb.append(new Row(header.getColumns()).print(columnValues));
-
-      if (includeSnippet) {
-         sb.append(format("%nDescription:%n%s", result.snippet));
-      }
-      return sb.toString();
-   }
-
-   private String truncate(String str, int maxLength) {
-      if (str == null) return "";
-      if (str.length() > maxLength) {
-         return str.substring(0, maxLength - 3) + "...";
-      }
-      return str;
+      return row;
    }
 }

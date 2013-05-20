@@ -3,6 +3,9 @@ package com.digitalsanctum.indeed;
 import com.digitalsanctum.indeed.util.FileUtils;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -25,6 +28,16 @@ public abstract class BaseRequest implements Request {
 
    public Properties getProperties() {
       return properties;
+   }
+
+   public Map<String, String> getPropertiesStartingWith(String startingWith) {
+      Map<String, String> map = new HashMap<String, String>();
+      for (String propName : properties.stringPropertyNames()) {
+         if (propName.startsWith(startingWith)) {
+            map.put(propName, getProperty(propName));
+         }
+      }
+      return map;
    }
 
    public String getProperty(String key) {

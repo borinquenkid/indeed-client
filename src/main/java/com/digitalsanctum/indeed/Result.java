@@ -44,5 +44,4 @@ public class Result implements MetaAware {
    public boolean hasMeta() {
       return metaMap != null && !metaMap.isEmpty();
    }
-
 }

@@ -17,19 +17,21 @@ public class SearchResponse extends GetJobsResponse {
    public String radius;
    public String pageNumber;
 
+   boolean printMeta = true;
+
+   public SearchResponse printMeta(boolean printMeta) {
+      this.printMeta = printMeta;
+      return this;
+   }
 
    @Override
    public String print() {
       StringBuilder sb = new StringBuilder();
-
-      sb.append(format("%nShowing %s-%s of %d results sorted by %s. [query='%s', location='%s']%n",
-         start, end, totalResults, sort, query, location));
-
-      sb.append(header.print(results));
-      sb.append(header.horizontalDiv());
-      for (Result result : results) {
-         sb.append(printResult(result, false));
+      if (printMeta) {
+         sb.append(format("%nShowing %s-%s of %d results sorted by %s. [query='%s', location='%s']%n",
+            start, end, totalResults, sort, query, location));
       }
+      sb.append(getTable().print());
       return sb.toString();
    }
 }

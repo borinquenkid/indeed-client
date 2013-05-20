@@ -27,7 +27,7 @@ public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
 
       for (Result r : response.results) {
 
-         String text = r.getMeta("job_text").getValue();
+         String text = extractTextFromUrl(r.url);
 
          int score = 0;
          if (includes != null) {
@@ -57,8 +57,7 @@ public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
             }
          }
 
-         Meta meta = new Meta(new Column("skill_score", 15, Align.RIGHT), String.valueOf(score), true);
-         r.addMeta(meta);
+         r.addMeta(new Meta(new Column().title("skill_score").width(15).align(Align.RIGHT), String.valueOf(score), true));
       }
    }
 
@@ -73,6 +72,6 @@ public class SkillScorePlugin extends SearchPlugin implements ChainedPlugin {
 
    @Override
    public List<Plugin> dependsOn() {
-      return ImmutableList.of((Plugin) new ExtractTextPlugin());
+      return ImmutableList.of();
    }
 }

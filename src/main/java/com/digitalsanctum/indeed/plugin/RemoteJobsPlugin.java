@@ -27,15 +27,13 @@ public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
 
       for (Result r : searchResponse.results) {
 
-         // got from ExtractTextPlugin
-         String text = r.getMeta("job_text").getValue();
-
+         String text = extractTextFromUrl(r.url);
          int score = 0;
-         score = testPatterns(positive, text, score, true);
-         score = testPatterns(negative, text, score, false);
+         score = testPatterns(positive, text, score, true, 1);
+         score = testPatterns(positive, r.jobtitle, score, true, 2);
+         score = testPatterns(negative, text, score, false, 1);
 
-         Meta meta = new Meta(new Column("remote_score", 15, Align.RIGHT), String.valueOf(score), true);
-         r.addMeta(meta);
+         r.addMeta(new Meta(new Column().title("remote_score").width(15).align(Align.RIGHT), String.valueOf(score), true));
       }
    }
 
@@ -49,14 +47,14 @@ public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
       return Splitter.on("\n").omitEmptyStrings().trimResults().split(content);
    }
 
-   private int testPatterns(Iterable<String> patterns, String text, int score, boolean add) {
+   private int testPatterns(Iterable<String> patterns, String text, int score, boolean add, int additiveScore) {
       for (String pattern : patterns) {
          boolean present = Pattern
             .compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE)
             .matcher(text)
             .find();
          if (present) {
-            score = (add ? (score + 1) : (score - 1));
+            score = (add ? (score + additiveScore) : (score - additiveScore));
          }
       }
       return score;
@@ -64,6 +62,6 @@ public class RemoteJobsPlugin extends SearchPlugin implements ChainedPlugin {
 
    @Override
    public List<Plugin> dependsOn() {
-      return ImmutableList.of((Plugin) new ExtractTextPlugin());
+      return ImmutableList.of();
    }
 }

@@ -21,4 +21,9 @@ public class ConsolePrintPlugin implements Plugin<BaseRequest,Response> {
          System.out.println(((PrintAware) response).print());
       }
    }
+
+   @Override
+   public String getName() {
+      return getClass().getName();
+   }
 }

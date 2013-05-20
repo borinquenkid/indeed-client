@@ -3,23 +3,24 @@ package com.digitalsanctum.indeed;
 /** @author Shane Witbeck */
 public class Column {
 
-   private String title;
-   private int width;
+   private String title = "";
+   private int width = 25;
    private Align align = Align.LEFT;
 
-   public Column(String title) {
+
+   public Column title(String title) {
       this.title = title;
-      this.width = title.length();
+      return this;
    }
 
-   public Column(String title, int width) {
-      this.title = title;
-      this.width = (title.length() > width) ? title.length() + 1 : width;
+   public Column width(int width) {
+      this.width = width;
+      return this;
    }
 
-   public Column(String title, int width, Align align) {
-      this(title, width);
+   public Column align(Align align) {
       this.align = align;
+      return this;
    }
 
    public String getTitle() {
@@ -30,11 +31,21 @@ public class Column {
       return width;
    }
 
-   public Align justify() {
+   public Align getAlign() {
       return this.align;
    }
 
    public String getFormat() {
       return "%" + this.align.getFmtString() + width + "s";
+   }
+
+   @Override
+   public String toString() {
+      final StringBuilder sb = new StringBuilder("Column{");
+      sb.append("title='").append(title).append('\'');
+      sb.append(", width=").append(width);
+      sb.append(", align=").append(align);
+      sb.append('}');
+      return sb.toString();
    }
 }

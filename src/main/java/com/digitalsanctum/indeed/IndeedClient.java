@@ -10,22 +10,19 @@ import io.airlift.command.Help;
 import io.airlift.command.Option;
 import io.airlift.command.OptionType;
 import retrofit.http.RestAdapter;
+import retrofit.http.RetrofitError;
 
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 
 /** @author Shane Witbeck */
 public class IndeedClient {
-
-   private static final Logger LOG = Logger.getLogger(IndeedClient.class.getSimpleName());
 
    private static final ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
 
@@ -40,48 +37,62 @@ public class IndeedClient {
       this.indeed = restAdapter.create(Indeed.class);
    }
 
-   private SearchResponse search(SearchRequest request) {
-      SearchResponse response = indeed.search(request.publisherId, request.query, request.location,
-         request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
-      response.sort = request.sort;
+   static Set<String> PLUGIN_CACHE = newHashSet();
 
-      Set<String> executedPlugins = newHashSet();
+   private SearchResponse search(SearchRequest request) {
+      SearchResponse response = null;
+      try {
+         response = indeed.search(request.publisherId, request.query, request.location,
+            request.sort, request.start, request.limit, request.radius, request.from, request.st, request.jt);
+         response.sort = request.sort;
+      } catch (RetrofitError re) {
+         System.err.println("Search Error: " + re.getLocalizedMessage());
+         re.printStackTrace();
+      }
+
+      if (response == null) return null;
 
       // process plugins
       for (Plugin plugin : plugins) {
-         if (request.isTypeCompatible(plugin.appliesTo())) {
-
-            long start = System.currentTimeMillis();
-
-            // execute dependency plugins
-            if (plugin instanceof ChainedPlugin) {
-               List<Plugin> dependsOn = ((ChainedPlugin) plugin).dependsOn();
-               if (!dependsOn.isEmpty()) {
-                  for (Plugin p : dependsOn) {
-                     String pluginName = p.getClass().getName();
-                     if (!executedPlugins.contains(pluginName)) {
-                        p.execute(indeed, request, response);
-                        executedPlugins.add(pluginName);
-                     }
-                  }
-               }
-            }
-
-            plugin.execute(this.indeed, request, response);
-            LOG.info(format("executed %s plugin in %d ms", plugin.getClass().getSimpleName(), System.currentTimeMillis() - start));
+         if (request.isTypeCompatible(plugin.appliesTo())
+            && !PLUGIN_CACHE.contains(plugin.getName())) {
+            executePluginAndDependencies(request, response, plugin);
          }
       }
 
       return response;
    }
 
+   private void executePluginAndDependencies(Request request,
+                                             Response response,
+                                             Plugin plugin) {
+      if (plugin instanceof ChainedPlugin) {
+         List<Plugin> dependsOn = ((ChainedPlugin) plugin).dependsOn();
+         if (!dependsOn.isEmpty()) {
+            for (Plugin p : dependsOn) {
+               if (!PLUGIN_CACHE.contains(p.getName())) {
+                  executePluginAndDependencies(request, response, p);
+               }
+            }
+         }
+      }
+
+      String pluginName = plugin.getName();
+      if (!PLUGIN_CACHE.contains(pluginName)) {
+         plugin.execute(indeed, request, response);
+         PLUGIN_CACHE.add(pluginName);
+      }
+   }
+
    private GetJobsResponse getJobs(GetJobsRequest request) {
       GetJobsResponse response = indeed.getJobs(this.publisherId, request.jobKeys);
+
+      Set<String> executedPlugins = newHashSet();
 
       // process plugins
       for (Plugin plugin : plugins) {
          if (request.isTypeCompatible(plugin.appliesTo())) {
-            plugin.execute(this.indeed, request, response);
+            executePluginAndDependencies(request, response, plugin);
          }
       }
       return response;
@@ -99,7 +110,7 @@ public class IndeedClient {
       try {
          indeedParser.parse(args).run();
       } catch (RuntimeException e) {
-         LOG.log(Level.SEVERE, "Error", e);
+         e.printStackTrace();
          System.exit(1);
       }
       System.exit(0);
@@ -122,7 +133,7 @@ public class IndeedClient {
          }
 
          if (id == null || id.length() == 0) {
-            LOG.log(Level.SEVERE, "publisher id not found");
+            System.err.println("publisher id not found");
             System.exit(1);
          }
 
