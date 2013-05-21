@@ -34,4 +34,7 @@ public class SearchResponse extends GetJobsResponse {
       sb.append(getTable().print());
       return sb.toString();
    }
+
+
+
 }

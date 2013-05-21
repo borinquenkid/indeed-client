@@ -19,7 +19,7 @@ public class GetJobsResponse implements PrintAware, Response {
       return getTable().print();
    }
 
-   protected Table getTable() {
+   public Table getTable() {
       Table table = new Table();
       for (Result result : results) {
          Row row = getRowFromResult(result);
@@ -35,12 +35,12 @@ public class GetJobsResponse implements PrintAware, Response {
          .addCell(new Column().title("company"), result.company)
          .addCell(new Column().title("location"), result.formattedLocationFull)
          .addCell(new Column().title("posted"), result.formattedRelativeTime)
-         .addCell(new Column().title("job_key").width(20), result.jobkey);
+         .addCell(new Column().title("job_key").width(16), result.jobkey);
 
       if (result.hasMeta()) {
          for(Map.Entry<String, Meta> entry : result.getMetaMap().entrySet()) {
             if (entry.getValue().isDisplay()) {
-               row.addCell(entry.getValue().getColumn(), entry.getValue().getValue());
+               row.addCellNoTrunc(entry.getValue().getColumn(), entry.getValue().getValue());
             }
          }
       }

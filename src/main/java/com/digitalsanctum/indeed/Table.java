@@ -17,6 +17,15 @@ public class Table {
 
    public String printHeader() {
       if (rows == null) return null;
+      Row headerRow = getHeaderRow();
+      return headerRow != null ? headerRow.printColumnTitles() : null;
+   }
+
+   public List<Row> getRows() {
+      return rows;
+   }
+
+   public Row getHeaderRow() {
       Row headerRow = null;
       int lastLen = 0;
       for (Row row : rows) {
@@ -25,7 +34,7 @@ public class Table {
             lastLen = row.numberOfColumns();
          }
       }
-      return headerRow != null ? headerRow.printColumnTitles() : null;
+      return headerRow;
    }
 
    public String printRows() {

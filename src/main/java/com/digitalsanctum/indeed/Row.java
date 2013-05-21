@@ -1,7 +1,5 @@
 package com.digitalsanctum.indeed;
 
-import com.google.common.base.Joiner;
-
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -19,6 +17,12 @@ public class Row {
       return this;
    }
 
+   public Row addCellNoTrunc(Column column, String value) {
+      this.columns.add(column);
+      this.values.add(value);
+      return this;
+   }
+
    private StringBuilder formats() {
       StringBuilder formats = new StringBuilder();
       for (Column column : columns) {
@@ -31,12 +35,24 @@ public class Row {
       return columns.size();
    }
 
-   public String printColumnTitles() {
+   public List<String> getColumnTitles() {
       List<String> titles = newArrayList();
       for (Column column : columns) {
          titles.add(column.getTitle());
       }
-      return format(formats().toString(), titles.toArray());
+      return titles;
+   }
+
+   public String printColumnTitles() {
+      return format(formats().toString(), getColumnTitles().toArray());
+   }
+
+   public List<Column> getColumns() {
+      return columns;
+   }
+
+   public List<String> getValues() {
+      return values;
    }
 
    public String print() {
