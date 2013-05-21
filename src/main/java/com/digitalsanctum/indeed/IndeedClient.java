@@ -103,7 +103,7 @@ public class IndeedClient {
       Cli.CliBuilder<Runnable> builder = Cli.<Runnable>builder("indeed")
          .withDescription("a command line client for indeed.com")
          .withDefaultCommand(Help.class)
-         .withCommands(Help.class, Detail.class, Open.class, Search.class);
+         .withCommands(Help.class, Detail.class, Open.class, Search.class, PrintVersion.class);
 
       Cli<Runnable> indeedParser = builder.build();
 
@@ -201,6 +201,29 @@ public class IndeedClient {
          request.jt = jt;
 
          indeedClient.search(request);
+      }
+   }
+
+   public static enum Version {
+      INSTANCE;
+
+      private final String version;
+
+      private Version() {
+         this.version = Version.class.getPackage().getSpecificationVersion();
+      }
+
+      @Override
+      public String toString() {
+         return version;
+      }
+   }
+
+   @Command(name = "version", description = "output the version of indeed and java runtime in use")
+   public static class PrintVersion implements Runnable {
+      public void run() {
+         System.out.println("Indeed " + Version.INSTANCE);
+         System.out.println("Java version: " + System.getProperty("java.version"));
       }
    }
 
