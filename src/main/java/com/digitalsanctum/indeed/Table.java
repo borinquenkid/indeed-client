@@ -38,7 +38,12 @@ public class Table {
       return rows;
    }
 
+   public boolean hasRows() {
+      return rows != null && !rows.isEmpty();
+   }
+
    public Row getHeaderRow() {
+      if (rows == null) return null;
       Row headerRow = null;
       int lastLen = 0;
       for (Row row : rows) {
@@ -51,6 +56,7 @@ public class Table {
    }
 
    public String printRows() {
+      if (rows == null) return null;
       StringBuilder out = new StringBuilder();
       for (Row row : rows) {
          out.append(row.print()).append("\n");
@@ -59,6 +65,7 @@ public class Table {
    }
 
    public String print() {
+      if (rows == null) return null;
       StringBuilder out = new StringBuilder();
       return out
          .append(printHeader()).append("\n")

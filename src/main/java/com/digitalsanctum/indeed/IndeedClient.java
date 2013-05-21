@@ -3,14 +3,15 @@ package com.digitalsanctum.indeed;
 import com.digitalsanctum.indeed.plugin.ChainedPlugin;
 import com.digitalsanctum.indeed.plugin.Plugin;
 import com.digitalsanctum.indeed.util.FileUtils;
+import com.google.common.base.Joiner;
 import io.airlift.command.Arguments;
 import io.airlift.command.Cli;
 import io.airlift.command.Command;
 import io.airlift.command.Help;
 import io.airlift.command.Option;
 import io.airlift.command.OptionType;
-import retrofit.http.RestAdapter;
-import retrofit.http.RetrofitError;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 
 import java.io.File;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 
@@ -33,8 +35,18 @@ public class IndeedClient {
       this.publisherId = publisherId;
       RestAdapter restAdapter = new RestAdapter.Builder()
          .setServer("http://api.indeed.com/ads")
+         .setDebug(false)
          .build();
       this.indeed = restAdapter.create(Indeed.class);
+
+      int pluginCount = 0;
+      List<String> pluginNames = newArrayList();
+      for (Plugin plugin : plugins) {
+         pluginNames.add(plugin.getName());
+         pluginCount++;
+      }
+      String pNames = (pluginNames.isEmpty()) ? "." : ": " + Joiner.on(", ").join(pluginNames);
+      System.out.println(format("IndeedClient instantiated. Found %d plugins%s", pluginCount, pNames));
    }
 
    static Set<String> PLUGIN_CACHE = newHashSet();
@@ -147,10 +159,10 @@ public class IndeedClient {
    @Command(name = "search", description = "Search for jobs")
    public static class Search extends IndeedCommand {
       @Arguments(description = "Query. By default terms are ANDed.")
-      public String query;
+      public String query = "";
 
       @Option(name = "-loc", description = "Location. Use a postal code or a \"city, state/province/region\" combination.")
-      public String location;
+      public String location = "";
 
       @Option(name = "-sort", description = "Sort by relevance or date. Default is relevance.", allowedValues = {"date", "relevance"})
       public String sort = "relevance";
@@ -158,11 +170,11 @@ public class IndeedClient {
       @Option(name = "-jt",
          description = "Job type. Allowed values: \"fulltime\", \"parttime\", \"contract\", \"internship\", \"temporary\".",
          allowedValues = {"contract", "fulltime", "parttime", "internship", "temporary"})
-      public String jt;
+      public String jt = "";
 
       @Option(name = "-st", description = "Site type. To show only jobs from job boards use 'jobsite'. For jobs from direct employer websites use 'employer'.",
          allowedValues = {"employer", "jobsite"})
-      public String st;
+      public String st = "";
 
       @Option(name = "-from", description = "Number of days back to search.")
       public int from = 0;

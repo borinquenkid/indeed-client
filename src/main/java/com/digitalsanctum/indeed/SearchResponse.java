@@ -31,10 +31,9 @@ public class SearchResponse extends GetJobsResponse {
          sb.append(format("%nShowing %s-%s of %d results sorted by %s. [query='%s', location='%s']%n",
             start, end, totalResults, sort, query, location));
       }
-      sb.append(getTable().print());
+      if (hasResults()) {
+         sb.append(getTable().print());
+      }
       return sb.toString();
    }
-
-
-
 }

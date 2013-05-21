@@ -19,6 +19,10 @@ public class GetJobsResponse implements PrintAware, Response {
       return getTable().print();
    }
 
+   public boolean hasResults() {
+      return results != null && !results.isEmpty();
+   }
+
    public Table getTable() {
       Table table = new Table();
       for (Result result : results) {

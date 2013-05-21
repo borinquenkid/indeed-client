@@ -1,42 +1,28 @@
 package com.digitalsanctum.indeed;
 
 import retrofit.http.GET;
-import retrofit.http.Name;
-import retrofit.http.QueryParam;
-import retrofit.http.QueryParams;
+import retrofit.http.Query;
 
 /** @author Shane Witbeck */
 public interface Indeed {
 
-   static final String FORMAT = "json";
-   static final String VERSION = "2";
-
-
-   @GET("/apisearch")
-   @QueryParams({
-      @QueryParam(name = "format", value = FORMAT),
-      @QueryParam(name = "v", value = VERSION)
-   })
+   @GET("/apisearch?format=json&v=2")
    SearchResponse search(
-      @Name("publisher") String publisher,
-      @Name("q") String q,
-      @Name("l") String l,
-      @Name("sort") String sort,
-      @Name("start") int start,
-      @Name("limit") int limit,
-      @Name("radius") int radius,
-      @Name("fromAge") int fromAge,
-      @Name("st") String st,
-      @Name("jt") String jt
+      @Query("publisher") String publisher,
+      @Query("q") String q,
+      @Query("l") String l,
+      @Query("sort") String sort,
+      @Query("start") int start,
+      @Query("limit") int limit,
+      @Query("radius") int radius,
+      @Query("fromAge") int fromAge,
+      @Query("st") String st,
+      @Query("jt") String jt
    );
 
-   @GET("/apigetjobs")
-   @QueryParams({
-      @QueryParam(name = "format", value = FORMAT),
-      @QueryParam(name = "v", value = VERSION)
-   })
+   @GET("/apigetjobs?format=json&v=2")
    GetJobsResponse getJobs(
-      @Name("publisher") String publisher,
-      @Name("jobkeys") String jobKeys
+      @Query("publisher") String publisher,
+      @Query("jobkeys") String jobKeys
    );
 }

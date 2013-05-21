@@ -33,6 +33,8 @@ public class JobIndexHtmlExportPlugin extends SearchPlugin {
    @Override
    public void execute(Indeed indeed, SearchRequest req, SearchResponse res) {
 
+      if (!res.hasResults()) return;
+
       this.dataDir = req.getProperty("plugin.export.data.dir");
       boolean createDataDirSuccess = createDataDir();
       if (!createDataDirSuccess) {
@@ -53,6 +55,7 @@ public class JobIndexHtmlExportPlugin extends SearchPlugin {
    }
 
    private String printHtml(Table table) {
+
       StringBuilder sb = new StringBuilder();
       sb.append("<html><head/><body>");
 
