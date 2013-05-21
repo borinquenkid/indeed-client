@@ -1,6 +1,7 @@
 package com.digitalsanctum.indeed.plugin;
 
 import com.digitalsanctum.indeed.Indeed;
+import com.digitalsanctum.indeed.Meta;
 import com.digitalsanctum.indeed.Result;
 import com.digitalsanctum.indeed.SearchRequest;
 import com.digitalsanctum.indeed.SearchResponse;
@@ -38,8 +39,16 @@ public class ResultFilterPlugin extends SearchPlugin implements ChainedPlugin {
 
       for (Result r : response.results) {
 
-         int resultRemoteScore = Integer.valueOf(r.getMeta("remote_score").getValue());
-         int resultSkillScore = Integer.valueOf(r.getMeta("skill_score").getValue());
+         Meta remoteScoreMeta = r.getMeta("remote_score");
+         int resultRemoteScore = 0;
+         if (remoteScoreMeta != null) {
+            resultRemoteScore = Integer.valueOf(r.getMeta("remote_score").getValue());
+         }
+         Meta skillScoreMeta = r.getMeta("skill_score");
+         int resultSkillScore = 0;
+         if (skillScoreMeta != null) {
+            resultSkillScore = Integer.valueOf(r.getMeta("skill_score").getValue());
+         }
          boolean filter = false;
 
          if (remoteConf && skillConf) {
@@ -66,8 +75,6 @@ public class ResultFilterPlugin extends SearchPlugin implements ChainedPlugin {
             .printMeta(false)
             .results = filteredResults;
          System.out.println("\nShowing filtered results!\n");
-      } else {
-         System.out.println("\nNo filtered results found!\n");
       }
    }
 }

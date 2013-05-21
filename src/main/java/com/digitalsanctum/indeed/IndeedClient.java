@@ -4,6 +4,10 @@ import com.digitalsanctum.indeed.plugin.ChainedPlugin;
 import com.digitalsanctum.indeed.plugin.Plugin;
 import com.digitalsanctum.indeed.util.FileUtils;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import io.airlift.command.Arguments;
 import io.airlift.command.Cli;
 import io.airlift.command.Command;
@@ -18,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -31,7 +36,9 @@ public class IndeedClient {
    private String publisherId;
    private Indeed indeed;
 
-   public IndeedClient(String publisherId) {
+   static FluentIterable<String> ENABLED_PLUGINS;
+
+   public IndeedClient(String publisherId, Properties props) {
       this.publisherId = publisherId;
       RestAdapter restAdapter = new RestAdapter.Builder()
          .setServer("http://api.indeed.com/ads")
@@ -39,14 +46,28 @@ public class IndeedClient {
          .build();
       this.indeed = restAdapter.create(Indeed.class);
 
+      String enabledPluginsCsv = props.getProperty("enabled.plugins");
+      ENABLED_PLUGINS = FluentIterable.from(ImmutableSet.copyOf(Splitter.on(",").trimResults().split(enabledPluginsCsv)));
+
       int pluginCount = 0;
       List<String> pluginNames = newArrayList();
       for (Plugin plugin : plugins) {
-         pluginNames.add(plugin.getName());
-         pluginCount++;
+         if (isPluginEnabled(plugin)) {
+            pluginNames.add(plugin.getName());
+            pluginCount++;
+         }
       }
       String pNames = (pluginNames.isEmpty()) ? "." : ": " + Joiner.on(", ").join(pluginNames);
       System.out.println(format("IndeedClient instantiated. Found %d plugins%s", pluginCount, pNames));
+   }
+
+   private boolean isPluginEnabled(Plugin plugin) {
+      return ENABLED_PLUGINS
+         .anyMatch(
+            Predicates.contains(
+               Pattern.compile(Pattern.quote(plugin.getName()), Pattern.CASE_INSENSITIVE)
+            )
+         );
    }
 
    static Set<String> PLUGIN_CACHE = newHashSet();
@@ -66,8 +87,7 @@ public class IndeedClient {
 
       // process plugins
       for (Plugin plugin : plugins) {
-         if (request.isTypeCompatible(plugin.appliesTo())
-            && !PLUGIN_CACHE.contains(plugin.getName())) {
+         if (request.isTypeCompatible(plugin.appliesTo())) {
             executePluginAndDependencies(request, response, plugin);
          }
       }
@@ -78,6 +98,11 @@ public class IndeedClient {
    private void executePluginAndDependencies(Request request,
                                              Response response,
                                              Plugin plugin) {
+
+      if (PLUGIN_CACHE.contains(plugin.getName()) || !isPluginEnabled(plugin)) {
+         return;
+      }
+
       if (plugin instanceof ChainedPlugin) {
          List<Plugin> dependsOn = ((ChainedPlugin) plugin).dependsOn();
          if (!dependsOn.isEmpty()) {
@@ -98,8 +123,6 @@ public class IndeedClient {
 
    private GetJobsResponse getJobs(GetJobsRequest request) {
       GetJobsResponse response = indeed.getJobs(this.publisherId, request.jobKeys);
-
-      Set<String> executedPlugins = newHashSet();
 
       // process plugins
       for (Plugin plugin : plugins) {
@@ -136,9 +159,10 @@ public class IndeedClient {
       @Override
       public void run() {
 
+         String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed" + File.separatorChar + "indeed.properties";
+         Properties props = FileUtils.loadProperties(propsPath);
+
          if (id == null) {
-            String propsPath = System.getProperty("user.home") + File.separatorChar + ".indeed" + File.separatorChar + "indeed.properties";
-            Properties props = FileUtils.loadProperties(propsPath);
             if (props != null && props.containsKey("publisher.id")) {
                id = props.getProperty("publisher.id");
             }
@@ -149,7 +173,7 @@ public class IndeedClient {
             System.exit(1);
          }
 
-         IndeedClient indeedClient = new IndeedClient(id);
+         IndeedClient indeedClient = new IndeedClient(id, props);
          doRun(indeedClient);
       }
 
