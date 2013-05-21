@@ -1,5 +1,8 @@
 package com.digitalsanctum.indeed;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -18,7 +21,17 @@ public class Table {
    public String printHeader() {
       if (rows == null) return null;
       Row headerRow = getHeaderRow();
-      return headerRow != null ? headerRow.printColumnTitles() : null;
+      if (headerRow != null) {
+         String div = Strings.repeat("-", headerRow.widthInChars());
+         StringBuilder out = new StringBuilder();
+         out.append(div).append("\n")
+            .append(headerRow.printColumnTitles()).append("\n")
+            .append(div);
+
+         return out.toString();
+      } else {
+         return null;
+      }
    }
 
    public List<Row> getRows() {

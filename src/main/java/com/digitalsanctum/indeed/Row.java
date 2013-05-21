@@ -35,6 +35,14 @@ public class Row {
       return columns.size();
    }
 
+   public int widthInChars() {
+      int total = 0;
+      for (Column column : columns) {
+         total += column.getWidth();
+      }
+      return total;
+   }
+
    public List<String> getColumnTitles() {
       List<String> titles = newArrayList();
       for (Column column : columns) {
