@@ -33,42 +33,17 @@ dependencies {
 task fatJar(dependsOn: classes, type: Jar) {
     classifier 'cli'
 
-    def pluginFile = "META-INF/services/com.digitalsanctum.indeed.plugin.Plugin"
-    def mergeDir = "${buildDir}/merge"
-
-    doFirst {
-        // Delay evaluation until the compile configuration is ready
-        from {
-            configurations.compile.collect { zipTree(it).matching { exclude "**/${pluginFile}" } }
-        }
-    }
-
-    doFirst {
-        new File(mergeDir).delete()
-        def mergedFile = new File(mergeDir, pluginFile)
-        new File(mergedFile.parent).mkdirs()
-
-        def depProjects = configurations.runtime.allDependencies.withType(ProjectDependency)*.dependencyProject
-        depProjects.collect { it.sourceSets.main.resources }*.matching { include "**/${pluginFile}" }*.each {
-            mergedFile << it.bytes
-        }
-
-        from(mergeDir)
-    }
-
-    from (sourceSets*.output.classesDir) {
-        exclude pluginFile
-    }
-
-    // really executable jar
-    // http://skife.org/java/unix/2011/06/20/really_executable_jars.html
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir)
+    from configurations.runtime.asFileTree.files.collect { zipTree(it) }
 
     manifest {
         attributes 'Main-Class': 'com.digitalsanctum.indeed.IndeedClient'
         attributes("Implementation-Title": "Indeed", "Specification-Version": version, "Implementation-Version": version)
     }
 
-
+    // really executable jar
+    // http://skife.org/java/unix/2011/06/20/really_executable_jars.html
     // for convenience, we make a file in the build dir named denominator with no extension
     doLast {
         def srcFile = new File("${buildDir}/libs/${archiveName}")
